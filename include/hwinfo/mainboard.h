@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include <hwinfo/platform.h>
+
 #include <string>
 #include <vector>
 
@@ -17,10 +19,10 @@ class MainBoard {
   MainBoard();
   ~MainBoard() = default;
 
-  std::string& vendor();
-  std::string& name();
-  std::string& version();
-  std::string& serialNumber();
+  const std::string& vendor() const;
+  const std::string& name() const;
+  const std::string& version() const;
+  const std::string& serialNumber() const;
 
  private:
   std::string _vendor;

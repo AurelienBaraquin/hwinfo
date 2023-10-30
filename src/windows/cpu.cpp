@@ -1,7 +1,7 @@
 // Copyright (c) Leon Freist <freist@informatik.uni-freiburg.de>
 // This software is part of HWBenchmark
 
-#include "hwinfo/platform.h"
+#include <hwinfo/platform.h>
 
 #ifdef HWINFO_WINDOWS
 
@@ -17,6 +17,7 @@
 namespace hwinfo {
 namespace cpu {
 
+// =====================================================================================================================
 // _____________________________________________________________________________________________________________________
 std::vector<std::string> getVendor() {
   std::vector<const wchar_t*> vendors{};

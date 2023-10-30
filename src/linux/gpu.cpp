@@ -2,13 +2,17 @@
 // Copyright Leon Freist
 // Author Leon Freist <freist@informatik.uni-freiburg.de>
 
-#include "hwinfo/platform.h"
+#include <hwinfo/platform.h>
 
 #ifdef HWINFO_UNIX
 
-#include <hwinfo/PCIMapper.h>
 #include <hwinfo/gpu.h>
+#include <hwinfo/utils/PCIMapper.h>
 #include <hwinfo/utils/filesystem.h>
+
+#ifdef USE_OCL
+#include <missocl/opencl.h>
+#endif
 
 #include <fstream>
 #include <string>
@@ -59,21 +63,40 @@ std::vector<GPU> getAllGPUs() {
     gpu._id = id;
     std::string path("/sys/class/drm/card" + std::to_string(id) + '/');
     if (!filesystem::exists(path)) {
-      break;
+      if (id > 2) {
+        break;
+      }
+      id++;
+      continue;
     }
-    std::string vendor_id = read_drm_by_path(path + "device/vendor");
-    std::string device_id = read_drm_by_path(path + "device/device");
-    const PCIVendor& vendor = pci[vendor_id];
-    const PCIDevice device = vendor[device_id];
+    gpu._vendor_id = read_drm_by_path(path + "device/vendor");
+    gpu._device_id = read_drm_by_path(path + "device/device");
+    if (gpu._vendor_id.empty() || gpu._device_id.empty()) {
+      id++;
+      continue;
+    }
+    const PCIVendor& vendor = pci[gpu._vendor_id];
+    const PCIDevice device = vendor[gpu._device_id];
     gpu._vendor = vendor.vendor_name;
-    gpu._name = vendor[device_id].device_name;
+    gpu._name = vendor[gpu._device_id].device_name;
     auto frequencies = get_frequencies(path);
-    gpu._minFrequency_MHz = frequencies[0];
-    gpu._currentFrequency_MHz = frequencies[1];
-    gpu._maxFrequency_MHz = frequencies[2];
+    gpu._frequency_MHz = frequencies[2];
     gpus.push_back(std::move(gpu));
     id++;
   }
+#ifdef USE_OCL
+  auto cl_gpus = mcl::DeviceManager::get_list<mcl::Filter::GPU>();
+  for (auto& gpu : gpus) {
+    for (auto* cl_gpu : cl_gpus) {
+      if (cl_gpu->name().find(gpu._device_id)) {
+        gpu._driverVersion = cl_gpu->driver_version();
+        gpu._frequency_MHz = static_cast<int64_t>(cl_gpu->clock_frequency_MHz());
+        gpu._num_cores = static_cast<int>(cl_gpu->cores());
+        gpu._memory_Bytes = static_cast<int64_t>(cl_gpu->memory_Bytes());
+      }
+    }
+  }
+#endif  // USE_OCL
   return gpus;
 }
 

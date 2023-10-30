@@ -5,7 +5,10 @@
  * This file is part of hwinfo.
  */
 
-#include <hwinfo/PCIMapper.h>
+#include <hwinfo/utils/PCIMapper.h>
+
+#ifdef HWINFO_UNIX
+
 #include <hwinfo/utils/stringutils.h>
 
 #include <fstream>
@@ -96,9 +99,25 @@ const PCIVendor& PCIMapper::operator[](const std::string& vendor_id) const { ret
 
 // _____________________________________________________________________________________________________________________
 PCIMapper PCI::getMapper() {
-  static std::string path(std::getenv("HOME"));
+  const auto getenv = [](const char* name) -> std::string {
+
+#ifdef _MSC_VER
+    char* value;
+    size_t size;
+    _dupenv_s(&value, &size, name);
+    std::string ret(value);
+    free(value);
+#else
+    std::string ret(std::getenv(name));
+#endif
+    return ret;
+  };
+
+  static std::string path = getenv("HOME");
   static PCIMapper mapper(path + "/.hwinfo/pci.ids");
   return mapper;
 }
 
 }  // namespace hwinfo
+
+#endif  // HWINFO_UNIX

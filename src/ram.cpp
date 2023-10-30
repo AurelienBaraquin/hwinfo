@@ -2,18 +2,8 @@
 // This software is part of HWBenchmark
 
 #include <string>
-#include <vector>
 
-#if defined(unix) || defined(__unix) || defined(__unix__)
-#include <unistd.h>
-#elif defined(__APPLE__)
-#include <sys/sysctl.h>
-#elif defined(_WIN32) || defined(_WIN64)
-#include <Windows.h>
-
-#include "hwinfo/WMIwrapper.h"
-#endif
-#include "hwinfo/ram.h"
+#include <hwinfo/ram.h>
 
 namespace hwinfo {
 
@@ -33,9 +23,9 @@ const std::string& RAM::serialNumber() const { return _serialNumber; }
 int64_t RAM::total_Bytes() const { return _total_Bytes; }
 
 // _____________________________________________________________________________________________________________________
-int64_t RAM::free_Bytes() const { return _free_Bytes; }
+int64_t RAM::frequency_Hz() const { return _frequency_Hz; }
 
 // _____________________________________________________________________________________________________________________
-int64_t RAM::available_Bytes() const { return _available_Bytes; }
+int RAM::id() const { return _id; }
 
 }  // namespace hwinfo

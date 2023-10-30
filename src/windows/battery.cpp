@@ -7,10 +7,11 @@
 
 #ifdef HWINFO_WINDOWS
 
-#include <iostream>
+#include <hwinfo/battery.h>
+#include <hwinfo/utils/stringutils.h>
+#include <hwinfo/utils/wmi_wrapper.h>
 
-#include "hwinfo/WMIwrapper.h"
-#include "hwinfo/battery.h"
+#include <iostream>
 
 namespace hwinfo {
 
@@ -42,10 +43,10 @@ bool Battery::discharging() const { return false; }
 // =====================================================================================================================
 // _____________________________________________________________________________________________________________________
 std::vector<Battery> getAllBatteries() {
-  std::vector<Battery> batteries;
-  std::vector<const wchar_t*> res{};
-  wmi::queryWMI("Win32_Battery", "Name", res);
-  if (res.empty() || res.front() == nullptr) {
+  utils::WMI::_WMI wmi;
+  const std::wstring query_string(L"SELECT DeviceID, FullChargeCapacity, Name FROM Win32_Battery");
+  bool success = wmi.execute_query(query_string);
+  if (!success) {
     return {};
   }
   int8_t counter = 0;
@@ -54,7 +55,6 @@ std::vector<Battery> getAllBatteries() {
     batteries.emplace_back(counter++);
     batteries.back()._model = {tmp.begin(), tmp.end()};
   }
-  res.clear();
   return batteries;
 }
 

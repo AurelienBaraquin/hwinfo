@@ -1,11 +1,13 @@
 // Copyright Leon Freist
 // Author Leon Freist <freist@informatik.uni-freiburg.de>
 
-#include <iostream>
-#include <iomanip>
+#include <hwinfo/hwinfo.h>
 
-#include "hwinfo/hwinfo.h"
-#include <hwinfo/PCIMapper.h>
+#include <iomanip>
+#include <iostream>
+#include <vector>
+
+#include "hwinfo/utils/PCIMapper.h"
 
 int main(int argc, char** argv) {
   std::cout << "hwinfo is an open source, MIT licensed project that implements a platform independent "
@@ -31,25 +33,26 @@ int main(int argc, char** argv) {
     std::cout << cpu.maxClockSpeed_MHz() << std::endl;
     std::cout << std::left << std::setw(20) << " regular frequency:";
     std::cout << cpu.regularClockSpeed_MHz() << std::endl;
-    std::cout << std::left << std::setw(20) << " min frequency:";
-    std::cout << cpu.minClockSpeed_MHz() << std::endl;
-    std::cout << std::left << std::setw(20) << " current frequency:";
-    std::cout << cpu.currentClockSpeed_MHz() << std::endl;
-    std::cout << std::left << std::setw(20) << " cache size:";
-    std::cout << cpu.cacheSize_Bytes() << std::endl;
+    std::cout << std::left << std::setw(20) << " cache size (L1, L2, L3): ";
+    std::cout << cpu.L1CacheSize_Bytes() << ", " << cpu.L2CacheSize_Bytes() << ", " << cpu.L3CacheSize_Bytes()
+              << std::endl;
+    auto threads_utility = cpu.threadsUtilisation();
+    auto threads_speed = cpu.currentClockSpeed_MHz();
+    for (int thread_id = 0; thread_id < threads_utility.size(); ++thread_id) {
+      std::cout << std::left << std::setw(20) << "   Thread " + std::to_string(thread_id) + ": ";
+      std::cout << threads_speed[thread_id] << " MHz (" << threads_utility[thread_id] * 100 << "%)" << std::endl;
+    }
+    // std::cout << cpu.currentTemperature_Celsius() << std::endl;
   }
-
 
   hwinfo::OS os;
   std::cout << "----------------------------------- OS ------------------------------------" << std::endl;
   std::cout << std::left << std::setw(20) << "Operating System:";
-  std::cout << os.fullName() <<std::endl;
-  std::cout << std::left << std::setw(20) << "short name:";
-  std::cout << os.name() <<std::endl;
+  std::cout << os.name() << std::endl;
   std::cout << std::left << std::setw(20) << "version:";
-  std::cout << os.version() <<std::endl;
+  std::cout << os.version() << std::endl;
   std::cout << std::left << std::setw(20) << "kernel:";
-  std::cout << os.kernel() <<std::endl;
+  std::cout << os.kernel() << std::endl;
   std::cout << std::left << std::setw(20) << "architecture:";
   std::cout << (os.is32bit() ? "32 bit" : "64 bit") << std::endl;
   std::cout << std::left << std::setw(20) << "endianess:";
@@ -67,30 +70,33 @@ int main(int argc, char** argv) {
     std::cout << gpu.driverVersion() << std::endl;
     std::cout << std::left << std::setw(20) << "  memory [MiB]:";
     std::cout << static_cast<double>(gpu.memory_Bytes()) / 1024.0 / 1024.0 << std::endl;
-    std::cout << std::left << std::setw(20) << "  min frequency:";
-    std::cout << gpu.min_frequency_MHz() << std::endl;
-    std::cout << std::left << std::setw(20) << "  cur frequency:";
-    std::cout << gpu.current_frequency_MHz() << std::endl;
-    std::cout << std::left << std::setw(20) << "  max frequency:";
-    std::cout << gpu.max_frequency_MHz() << std::endl;
+    std::cout << std::left << std::setw(20) << "  frequency:";
+    std::cout << gpu.frequency_MHz() << std::endl;
+    std::cout << std::left << std::setw(20) << "  cores:";
+    std::cout << gpu.num_cores() << std::endl;
   }
 
-  hwinfo::RAM ram;
-  std::cout << "----------------------------------- RAM -----------------------------------" << std::endl;
-  std::cout << std::left << std::setw(20) << "vendor:";
-  std::cout << ram.vendor() << std::endl;
-  std::cout << std::left << std::setw(20) << "model:";
-  std::cout << ram.model() << std::endl;
-  std::cout << std::left << std::setw(20) << "name:";
-  std::cout << ram.name() << std::endl;
-  std::cout << std::left << std::setw(20) << "serial-number:";
-  std::cout << ram.serialNumber() << std::endl;
-  std::cout << std::left << std::setw(20) << "size [MiB]:";
-  std::cout << ram.total_Bytes() / 1024 / 1024 << std::endl;
-  std::cout << std::left << std::setw(20) << "free [MiB]:";
-  std::cout << ram.free_Bytes() / 1024 / 1024 << std::endl;
-  std::cout << std::left << std::setw(20) << "available [MiB]:";
-  std::cout << ram.available_Bytes() / 1024 / 1024 << std::endl;
+  // auto rams = hwinfo::getAllRAM();
+  // std::cout << "----------------------------------- RAM -----------------------------------" << std::endl;
+  // for (auto& ram : rams) {
+  //   std::cout << "RAM " << ram.id() << ":\n";
+  //   std::cout << std::left << std::setw(20) << "vendor:";
+  //   std::cout << ram.vendor() << std::endl;
+  //   std::cout << std::left << std::setw(20) << "model:";
+  //   std::cout << ram.model() << std::endl;
+  //   std::cout << std::left << std::setw(20) << "name:";
+  //   std::cout << ram.name() << std::endl;
+  //   std::cout << std::left << std::setw(20) << "serial-number:";
+  //   std::cout << ram.serialNumber() << std::endl;
+  //   std::cout << std::left << std::setw(20) << "size [MiB]:";
+  //   std::cout << ram.total_Bytes() / 1024 / 1024 << std::endl;
+  //   std::cout << std::left << std::setw(20) << "free [MiB]:";
+  //   std::cout << ram.free_Bytes() / 1024 / 1024 << std::endl;
+  //   std::cout << std::left << std::setw(20) << "available [MiB]:";
+  //   std::cout << ram.available_Bytes() / 1024 / 1024 << std::endl;
+  //   std::cout << std::left << std::setw(20) << "Frequency [MHz]:";
+  //   std::cout << ram.frequency_Hz() / 1000 / 1000 << std::endl;
+  // }
 
   hwinfo::MainBoard main_board;
   std::cout << "------------------------------- Main Board --------------------------------" << std::endl;
@@ -101,13 +107,13 @@ int main(int argc, char** argv) {
   std::cout << std::left << std::setw(20) << "version:";
   std::cout << main_board.version() << std::endl;
   std::cout << std::left << std::setw(20) << "serial-number:";
-  std::cout << ram.serialNumber() << std::endl;
+  std::cout << main_board.serialNumber() << std::endl;
 
   std::vector<hwinfo::Battery> batteries = hwinfo::getAllBatteries();
   std::cout << "------------------------------- Batteries ---------------------------------" << std::endl;
   if (!batteries.empty()) {
     int battery_counter = 0;
-    for (auto &battery: batteries) {
+    for (auto& battery : batteries) {
       std::cout << "Battery " << battery_counter++ << ":" << std::endl;
       std::cout << std::left << std::setw(20) << "  vendor:";
       std::cout << battery.vendor() << std::endl;
@@ -121,8 +127,7 @@ int main(int argc, char** argv) {
       std::cout << battery.capacity() << std::endl;
     }
     std::cout << "---------------------------------------------------------------------------" << std::endl;
-  }
-  else {
+  } else {
     std::cout << "No Batteries installed or detected" << std::endl;
   }
 
@@ -130,7 +135,7 @@ int main(int argc, char** argv) {
   std::cout << "--------------------------------- Disks -----------------------------------" << std::endl;
   if (!disks.empty()) {
     int disk_counter = 0;
-    for (const auto &disk: disks) {
+    for (const auto& disk : disks) {
       std::cout << "Disk " << disk_counter++ << ":" << std::endl;
       std::cout << std::left << std::setw(20) << "  vendor:";
       std::cout << disk.vendor() << std::endl;
@@ -142,11 +147,7 @@ int main(int argc, char** argv) {
       std::cout << disk.size_Bytes() << std::endl;
     }
     std::cout << "---------------------------------------------------------------------------" << std::endl;
-  }
-  else {
+  } else {
     std::cout << "No Disks installed or detected" << std::endl;
   }
-
-  // call to get all CPU-Sockets:
-  hwinfo::getAllSockets();
 }

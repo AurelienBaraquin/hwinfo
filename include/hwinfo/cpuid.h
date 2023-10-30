@@ -8,7 +8,8 @@
 #if defined(HWINFO_X86)
 
 #ifdef _MSC_VER
-#include <Windows.h>
+#include <intrin.h>
+#include <windows.h>
 #else
 #include <cpuid.h>
 #endif

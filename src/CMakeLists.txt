@@ -1,4 +1,5 @@
-add_library(HWinfo
+add_library(HWinfo STATIC
+        hwinfo.cpp
         # platform independent definitions
         PCIMapper.cpp
         battery.cpp
@@ -28,6 +29,7 @@ add_library(HWinfo
         linux/disk.cpp
         # windows specific definitions
         windows/utils/filesystem.cpp
+        windows/utils/wmi_wrapper.cpp
         windows/battery.cpp
         windows/cpu.cpp
         windows/gpu.cpp
@@ -39,6 +41,10 @@ add_library(HWinfo
 
 if (WIN32 AND ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     target_link_libraries(HWinfo PUBLIC "wbemuuid")
+endif ()
+
+if (NOT DEFINED NO_OCL)
+    target_link_libraries(HWinfo PUBLIC miss-opencl_static)
 endif ()
 
 add_library(${PROJECT_NAME}::HWinfo ALIAS HWinfo)

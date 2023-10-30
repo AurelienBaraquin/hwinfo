@@ -1,17 +1,27 @@
 // Copyright (c) Leon Freist <freist@informatik.uni-freiburg.de>
 // This software is part of HWBenchmark
 
-#include "hwinfo/platform.h"
+#include <hwinfo/platform.h>
 
 #ifdef HWINFO_UNIX
 
+#include <unistd.h>
+
 #include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include <fstream>
+#include <iostream>
 #include <map>
+#include <sstream>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "hwinfo/cpu.h"
+#include "hwinfo/utils/filesystem.h"
 #include "hwinfo/utils/stringutils.h"
 
 namespace hwinfo {
@@ -29,6 +39,8 @@ int64_t get_freq_by_id_and_type(int proc_id, const std::string& type) {
   } catch (std::invalid_argument& e) {
     return -1;
   }
+
+  return -1;
 }
 
 // _____________________________________________________________________________________________________________________
@@ -36,8 +48,8 @@ int64_t CPU::currentClockSpeed_MHz() const { return get_freq_by_id_and_type(_cor
 
 // =====================================================================================================================
 // _____________________________________________________________________________________________________________________
-std::vector<Socket> getAllSockets() {
-  std::vector<Socket> sockets;
+std::vector<CPU> getAllCPUs() {
+  std::vector<CPU> cpus;
 
   std::ifstream cpuinfo("/proc/cpuinfo");
   if (!cpuinfo.is_open()) {
@@ -83,18 +95,14 @@ std::vector<Socket> getAllSockets() {
       }
     }
     if (next_add) {
-      cpu._maxClockSpeed_MHz = get_freq_by_id_and_type(cpu._core_id, "scaling_max_freq");
-      cpu._minClockSpeed_MHz = get_freq_by_id_and_type(cpu._core_id, "scaling_min_freq");
-      cpu._regularClockSpeed_MHz = get_freq_by_id_and_type(cpu._core_id, "base_frequency");
+      cpu._maxClockSpeed_MHz = getMaxClockSpeed_MHz(cpu._id);
+      cpu._regularClockSpeed_MHz = getRegularClockSpeed_MHz(cpu._id);
       next_add = false;
-      Socket socket(cpu);
       physical_id++;
-      socket._id = physical_id;
-      sockets.push_back(std::move(socket));
+      cpus.push_back(std::move(cpu));
     }
   }
-
-  return sockets;
+  return cpus;
 }
 
 }  // namespace hwinfo

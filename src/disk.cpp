@@ -1,9 +1,7 @@
 // Copyright Leon Freist
 // Author Leon Freist <freist@informatik.uni-freiburg.de>
 
-#include "hwinfo/disk.h"
-
-#include "hwinfo/utils/stringutils.h"
+#include <hwinfo/disk.h>
 
 namespace hwinfo {
 
@@ -18,5 +16,12 @@ const std::string& Disk::serialNumber() const { return _serialNumber; }
 
 // _____________________________________________________________________________________________________________________
 int64_t Disk::size_Bytes() const { return _size_Bytes; }
+
+// _____________________________________________________________________________________________________________________
+int Disk::id() const { return _id; }
+
+// _____________________________________________________________________________________________________________________
+bool Disk::empty() const { return (_vendor == "<unknown>" && _model == "<unknown>" && _serialNumber == "<unknown>" &&
+                                   _size_Bytes == -1 && _id == -1); }
 
 }  // namespace hwinfo

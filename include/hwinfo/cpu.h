@@ -3,21 +3,39 @@
 
 #pragma once
 
+#include <hwinfo/platform.h>
+#include <hwinfo/utils/wmi_wrapper.h>
+
 #include <memory>
 #include <string>
 #include <vector>
 
 namespace hwinfo {
 
-class Socket;
+#ifdef HWINFO_UNIX
+struct Jiffies {
+  Jiffies() {
+    working = -1;
+    all = -1;
+  }
+
+  Jiffies(const int64_t& _all, const int64_t& _working) {
+    all = _all;
+    working = _working;
+  }
+
+  int64_t working{-1};
+  int64_t all{-1};
+};
+#endif
 
 class CPU {
-  friend std::vector<Socket> getAllSockets();
-  friend class Socket;
+  friend std::vector<CPU> getAllCPUs();
 
  public:
   ~CPU() = default;
 
+  int id() const;
   const std::string& modelName() const;
   const std::string& vendor() const;
   int64_t cacheSize_Bytes() const;
@@ -28,11 +46,12 @@ class CPU {
   int64_t minClockSpeed_MHz() const;
   int64_t currentClockSpeed_MHz() const;
   const std::vector<std::string>& flags() const;
-  int id() const;
+  void init_jiffies() const;
 
  private:
   CPU() = default;
 
+  int _id{-1};
   std::string _modelName;
   std::string _vendor;
   int _numPhysicalCores{-1};
@@ -43,23 +62,9 @@ class CPU {
   int64_t _cacheSize_Bytes{-1};
   std::vector<std::string> _flags{};
 
-  int _core_id{-1};
+  mutable bool _jiffies_initialized = false;
 };
 
-class Socket {
-  friend std::vector<Socket> getAllSockets();
-
- public:
-  ~Socket() = default;
-  const class CPU& CPU() const;
-  int id() const;
-
- private:
-  explicit Socket(class CPU cpu);
-  int _id{-1};
-  class CPU _cpu;
-};
-
-std::vector<Socket> getAllSockets();
+std::vector<CPU> getAllCPUs();
 
 }  // namespace hwinfo

@@ -13,6 +13,14 @@ namespace hwinfo {
 
 // _____________________________________________________________________________________________________________________
 std::vector<Disk> getAllDisks() {
+  utils::WMI::_WMI wmi;
+  const std::wstring query_string(
+      L"SELECT Model, Manufacturer, SerialNumber, Size "
+      L"FROM Win32_DiskDrive");
+  bool success = wmi.execute_query(query_string);
+  if (!success) {
+    return {};
+  }
   std::vector<Disk> disks;
   std::vector<const wchar_t*> res{};
   wmi::queryWMI("Win32_DiskDrive", "Manufacturer", res);
