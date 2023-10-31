@@ -3,13 +3,16 @@
 
 #pragma once
 
+#include <hwinfo/platform.h>
+
 #include <cstdint>
 #include <string>
 #include <vector>
 
 namespace hwinfo {
 
-const unsigned short block_size = 512; // Linux always considers sectors to be 512 bytes long independently of the devices real block size.
+const unsigned short block_size =
+    512;  // Linux always considers sectors to be 512 bytes long independently of the devices real block size.
 
 class Disk {
   friend std::vector<Disk> getAllDisks();
@@ -17,19 +20,15 @@ class Disk {
  public:
   ~Disk() = default;
 
-  const std::string& vendor() const;
-  const std::string& model() const;
-  const std::string& serialNumber() const;
-  int64_t size_Bytes() const;
-  int id() const;
-  bool empty() const;
+  HWI_NODISCARD const std::string& vendor() const;
+  HWI_NODISCARD const std::string& model() const;
+  HWI_NODISCARD const std::string& serialNumber() const;
+  HWI_NODISCARD int64_t size_Bytes() const;
+  HWI_NODISCARD int id() const;
 
  private:
-  Disk() {
-    _vendor = "<unknown>";
-    _model = "<unknown>";
-    _serialNumber = "<unknown>";
-  }
+  Disk() = default;
+
   std::string _vendor;
   std::string _model;
   std::string _serialNumber;
